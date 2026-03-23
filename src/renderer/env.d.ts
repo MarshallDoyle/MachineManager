@@ -36,6 +36,15 @@ interface MachineAPI {
     setEmissivity(camera: number, value: number): Promise<void>
     forceFlagCycle(camera: number): Promise<void>
   }
+  recording: {
+    start(fileName: string): Promise<{ success: boolean; error?: string }>
+    stop(): Promise<{ success: boolean; error?: string }>
+    status(): Promise<{ state: string; recordingId: string | null; elapsed: number; meltpoolFrames: number; buildPlateFrames: number; axisDataPoints: number }>
+    list(): Promise<Array<{ id: string; fileName: string; startTime: number; endTime?: number; duration?: number; meltpoolFrameCount: number; buildPlateFrameCount: number }>>
+    load(recordingId: string): Promise<{ manifest: Record<string, unknown>; gcode: string; axisLog: string[]; stateLog: string[]; meltpoolFrameLog: string[]; buildPlateFrameLog: string[] }>
+    readFrame(recordingId: string, camera: string, frameIndex: number): Promise<ArrayBuffer | null>
+    onStatusChange(callback: (status: Record<string, unknown>) => void): () => void
+  }
   gcode: {
     loadFile(): Promise<{ fileName: string; content: string; filePath: string } | null>
     saveAndLoad(gcodeText: string, fileName: string, nciDir?: string): Promise<{ success: boolean; savedPath?: string; error?: string }>

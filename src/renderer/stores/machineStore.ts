@@ -34,6 +34,9 @@ interface MachineState {
   toolMeasureComplete: boolean
   feedOverride: number
 
+  // G-code
+  gcodeFileName: string | null
+
   // Tool measurement
   measuredZ: number
   measuredZ2: number
@@ -53,6 +56,7 @@ interface MachineState {
   setCameraManualRange: (camera: number, min: number, max: number) => void
   setCameraEmissivity: (camera: number, value: number) => void
   setCameraOverlay: (camera: number, key: 'showOverlay' | 'showColorBar' | 'showCrosshairs', value: boolean) => void
+  setGcodeFileName: (name: string | null) => void
   setPlcReady: (ready: boolean) => void
   setFeedOverride: (percent: number) => void
 }
@@ -97,6 +101,7 @@ export const useMachineStore = create<MachineState>((set) => ({
   interpreterState: 0,
   toolMeasureComplete: false,
   feedOverride: 100,
+  gcodeFileName: null,
 
   // Tool measurement
   measuredZ: 0,
@@ -244,6 +249,8 @@ export const useMachineStore = create<MachineState>((set) => ({
     })
     window.machineAPI?.camera.setEmissivity(camera, value)
   },
+
+  setGcodeFileName: (name) => set({ gcodeFileName: name }),
 
   setCameraOverlay: (camera, key, value) => {
     set((state) => {

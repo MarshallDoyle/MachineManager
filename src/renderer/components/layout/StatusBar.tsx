@@ -1,4 +1,5 @@
 import { ConnectionStatus } from '../status/ConnectionStatus'
+import { RecordingIndicator } from '../recording/RecordingIndicator'
 import { useMachineStore } from '../../stores/machineStore'
 
 export function StatusBar() {
@@ -17,6 +18,7 @@ export function StatusBar() {
         )}
       </div>
       <div className="flex items-center gap-4">
+        <RecordingIndicator />
         <span className="text-zinc-600">
           Cameras: <span className={cameraStatus === 'running' ? 'text-green-400' : 'text-zinc-500'}>{cameraStatus}</span>
         </span>

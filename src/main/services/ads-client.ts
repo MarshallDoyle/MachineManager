@@ -92,12 +92,21 @@ class AdsClientService {
   private client: Client | null = null
   private subscriptions: Array<{ unsubscribe: () => Promise<void> }> = []
   private onAxisUpdate: ((data: Record<string, unknown>) => void) | null = null
+  private recordingCallback: ((data: Record<string, unknown>) => void) | null = null
   private heartbeatInterval: ReturnType<typeof setInterval> | null = null
   private heartbeatCounter: number = 0
   private onConnectionStatusChange: ((status: string, detail?: string) => void) | null = null
 
   setConnectionStatusHandler(handler: (status: string, detail?: string) => void): void {
     this.onConnectionStatusChange = handler
+  }
+
+  setRecordingCallback(callback: (data: Record<string, unknown>) => void): void {
+    this.recordingCallback = callback
+  }
+
+  clearRecordingCallback(): void {
+    this.recordingCallback = null
   }
 
   async connect(config: AdsConnectionConfig): Promise<void> {
@@ -394,8 +403,12 @@ class AdsClientService {
       const sub = await this.client.subscribeValue(
         symbolPath,
         (data) => {
+          const update = { [symbolPath]: data.value }
           if (this.onAxisUpdate) {
-            this.onAxisUpdate({ [symbolPath]: data.value })
+            this.onAxisUpdate(update)
+          }
+          if (this.recordingCallback) {
+            this.recordingCallback(update)
           }
         },
         cycleTimeMs,

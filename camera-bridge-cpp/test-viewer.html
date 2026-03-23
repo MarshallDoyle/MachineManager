@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Camera Bridge Test Viewer</title>
+    <style>
+        body { background: #1a1a2e; color: #eee; font-family: monospace; margin: 20px; }
+        h1 { color: #e94560; }
+        .cameras { display: flex; gap: 20px; flex-wrap: wrap; }
+        .camera { background: #16213e; border: 1px solid #0f3460; border-radius: 8px; padding: 16px; }
+        .camera h2 { margin-top: 0; color: #e94560; }
+        canvas { background: #000; display: block; max-width: 480px; }
+        .status { margin-top: 8px; font-size: 14px; }
+        .status.connected { color: #4ade80; }
+        .status.disconnected { color: #f87171; }
+        .fps { color: #60a5fa; }
+    </style>
+</head>
+<body>
+    <h1>Camera Bridge Test Viewer</h1>
+    <div class="cameras">
+        <div class="camera">
+            <h2>Camera 1 - Meltpool (USB)</h2>
+            <canvas id="cam1" width="382" height="288"></canvas>
+            <div class="status disconnected" id="status1">Disconnected</div>
+            <div class="fps" id="fps1">FPS: 0</div>
+        </div>
+        <div class="camera">
+            <h2>Camera 2 - Build Plate (Ethernet)</h2>
+            <canvas id="cam2" width="384" height="240"></canvas>
+            <div class="status disconnected" id="status2">Disconnected</div>
+            <div class="fps" id="fps2">FPS: 0</div>
+        </div>
+    </div>
+
+    <script>
+        function connectCamera(canvasId, statusId, fpsId, wsUrl) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            const statusEl = document.getElementById(statusId);
+            const fpsEl = document.getElementById(fpsId);
+
+            let frameCount = 0;
+            let lastFpsTime = Date.now();
+
+            function connect() {
+                const ws = new WebSocket(wsUrl);
+                ws.binaryType = 'blob';
+
+                ws.onopen = () => {
+                    statusEl.textContent = 'Connected';
+                    statusEl.className = 'status connected';
+                };
+
+                ws.onclose = () => {
+                    statusEl.textContent = 'Disconnected - reconnecting...';
+                    statusEl.className = 'status disconnected';
+                    setTimeout(connect, 2000);
+                };
+
+                ws.onerror = () => {
+                    statusEl.textContent = 'Error';
+                    statusEl.className = 'status disconnected';
+                };
+
+                ws.onmessage = (event) => {
+                    frameCount++;
+                    const now = Date.now();
+                    if (now - lastFpsTime >= 1000) {
+                        fpsEl.textContent = 'FPS: ' + frameCount;
+                        frameCount = 0;
+                        lastFpsTime = now;
+                    }
+
+                    const img = new Image();
+                    const url = URL.createObjectURL(event.data);
+                    img.onload = () => {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+                        URL.revokeObjectURL(url);
+                    };
+                    img.src = url;
+                };
+            }
+
+            connect();
+        }
+
+        connectCamera('cam1', 'status1', 'fps1', 'ws://localhost:9801');
+        connectCamera('cam2', 'status2', 'fps2', 'ws://localhost:9802');
+    </script>
+</body>
+</html>

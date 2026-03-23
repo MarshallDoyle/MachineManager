@@ -71,6 +71,20 @@ const machineAPI = {
     forceFlagCycle: (camera: number) =>
       ipcRenderer.invoke('camera:force-flag-cycle', camera)
   },
+  recording: {
+    start: (fileName: string) => ipcRenderer.invoke('recording:start', fileName),
+    stop: () => ipcRenderer.invoke('recording:stop'),
+    status: () => ipcRenderer.invoke('recording:status'),
+    list: () => ipcRenderer.invoke('recording:list'),
+    load: (recordingId: string) => ipcRenderer.invoke('recording:load', recordingId),
+    readFrame: (recordingId: string, camera: string, frameIndex: number) =>
+      ipcRenderer.invoke('recording:read-frame', recordingId, camera, frameIndex),
+    onStatusChange: (callback: (status: Record<string, unknown>) => void) => {
+      const listener = (_event: Electron.IpcRendererEvent, status: Record<string, unknown>) => callback(status)
+      ipcRenderer.on('recording:status-change', listener)
+      return () => ipcRenderer.removeListener('recording:status-change', listener)
+    }
+  },
   gcode: {
     loadFile: () => ipcRenderer.invoke('gcode:load-file'),
     saveAndLoad: (gcodeText: string, fileName: string, nciDir?: string) =>

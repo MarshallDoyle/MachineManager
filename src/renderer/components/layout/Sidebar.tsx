@@ -7,6 +7,8 @@ const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: '\u25A6' },
   { id: 'jog', label: 'Jog', icon: '\u2725' },
   { id: 'gcode', label: 'G-Code', icon: '\u25B6' },
+  { id: 'scan', label: 'Scan', icon: '\u25CE' },
+  { id: 'analysis', label: 'Analysis', icon: '\u25B7' },
   { id: 'variables', label: 'Variables', icon: '\u2630' },
   { id: 'settings', label: 'Settings', icon: '\u2699' }
 ]

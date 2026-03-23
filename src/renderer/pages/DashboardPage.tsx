@@ -4,6 +4,7 @@ import { JogPanel } from '../components/jog/JogPanel'
 import { AxisStatus } from '../components/status/AxisStatus'
 import { useAdsConnection } from '../hooks/useAdsConnection'
 import { useMachineStore } from '../stores/machineStore'
+import { useRecordingStore } from '../stores/recordingStore'
 
 export function DashboardPage() {
   const { connectionStatus, connectionError, connect, disconnect } = useAdsConnection()
@@ -32,6 +33,43 @@ export function DashboardPage() {
     })
     return unsub
   }, [setCameraStatus, setCameraUrls])
+
+  // Recording
+  const isRecording = useRecordingStore((s) => s.isRecording)
+  const setRecordingStatus = useRecordingStore((s) => s.setRecordingStatus)
+  const programLoaded = useMachineStore((s) => s.programLoaded)
+  const gcodeFileName = useMachineStore((s) => s.gcodeFileName)
+
+  useEffect(() => {
+    const unsub = window.machineAPI.recording.onStatusChange((status) => {
+      setRecordingStatus(status)
+    })
+    return unsub
+  }, [setRecordingStatus])
+
+  const handleRunMachine = useCallback(async () => {
+    if (!gcodeFileName) {
+      setStatusMsg('No G-code program loaded. Load one from the G-Code page first.')
+      return
+    }
+    try {
+      await window.machineAPI.recording.start(gcodeFileName)
+      await window.machineAPI.gcode.run()
+      setStatusMsg('Build started — recording...')
+    } catch (err) {
+      setStatusMsg(`Error starting build: ${err}`)
+    }
+  }, [gcodeFileName])
+
+  const handleStopBuild = useCallback(async () => {
+    try {
+      await window.machineAPI.gcode.stop()
+      await window.machineAPI.recording.stop()
+      setStatusMsg('Build stopped')
+    } catch (err) {
+      setStatusMsg(`Error stopping build: ${err}`)
+    }
+  }, [])
 
   const allHomed = useMachineStore((s) => s.allHomed)
   const machineState = useMachineStore((s) => s.machineState)
@@ -158,6 +196,25 @@ export function DashboardPage() {
             >
               Reset Error
             </button>
+
+            <div className="w-px h-6 bg-zinc-700" />
+
+            {!isRecording ? (
+              <button
+                onClick={handleRunMachine}
+                disabled={!allHomed || !programLoaded || isRecording}
+                className="px-5 py-1.5 text-xs font-bold rounded-md bg-emerald-600 border border-emerald-500 text-white hover:bg-emerald-500 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                Run Machine
+              </button>
+            ) : (
+              <button
+                onClick={handleStopBuild}
+                className="px-5 py-1.5 text-xs font-bold rounded-md bg-red-600 border border-red-500 text-white hover:bg-red-500 animate-pulse"
+              >
+                Stop Build
+              </button>
+            )}
           </div>
 
           {/* Tool measurement feedback */}

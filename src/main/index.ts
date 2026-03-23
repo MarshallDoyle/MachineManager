@@ -3,6 +3,7 @@ import path from 'path'
 import { registerAdsHandlers } from './ipc/ads-handlers'
 import { registerCameraHandlers } from './ipc/camera-handlers'
 import { registerGcodeHandlers } from './ipc/gcode-handlers'
+import { registerRecordingHandlers } from './ipc/recording-handlers'
 import { settingsStore } from './services/settings-store'
 import { adsService } from './services/ads-client'
 import { cameraBridgeService } from './services/camera-bridge'
@@ -41,6 +42,7 @@ function createWindow(): BrowserWindow {
   registerAdsHandlers(mainWindow)
   registerCameraHandlers(mainWindow)
   registerGcodeHandlers(mainWindow)
+  registerRecordingHandlers(mainWindow)
 
   // Settings handlers
   ipcMain.handle('settings:get-ads-config', () => settingsStore.getAdsConfig())
