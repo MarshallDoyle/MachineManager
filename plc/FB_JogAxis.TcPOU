@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="FB_JogAxis" Id="{00000000-0000-0000-0000-000000000002}" SpecialFunc="None">
+    <Declaration><![CDATA[
+// FB_JogAxis
+// Function block for jogging a single axis.
+// Supports two modes:
+//   nJogMode = 0: Continuous jog via MC_Jog (hold button to move)
+//   nJogMode = 1: Incremental step via MC_MoveRelative (click to move fJogDistance)
+//
+// Usage in MAIN:
+//   fbJogX(bJogForward := GVL_MachineManager.bXJogForward,
+//          bJogBackward := GVL_MachineManager.bXJogBackward,
+//          fVelocity := GVL_MachineManager.fJogVelocity,
+//          nJogMode := GVL_MachineManager.nJogMode,
+//          fJogDistance := GVL_MachineManager.fJogDistance,
+//          bStop := GVL_MachineManager.bStopAll,
+//          Axis := AxisX);
+//   GVL_MachineManager.fXActualPosition := fbJogX.fActualPosition;
+//   GVL_MachineManager.fXActualVelocity := fbJogX.fActualVelocity;
+//   GVL_MachineManager.nXAxisState := fbJogX.nAxisState;
+//   GVL_MachineManager.bXAxisError := fbJogX.bError;
+//   GVL_MachineManager.nXAxisErrorId := fbJogX.nErrorId;
+
+FUNCTION_BLOCK FB_JogAxis
+VAR_INPUT
+    bJogForward  : BOOL;
+    bJogBackward : BOOL;
+    fVelocity    : LREAL;
+    nJogMode     : INT;       // 0 = continuous, 1 = incremental
+    fJogDistance  : LREAL;     // mm, used when nJogMode = 1
+    bStop        : BOOL;
+    bResetError  : BOOL;
+END_VAR
+VAR_IN_OUT
+    Axis         : AXIS_REF;
+END_VAR
+VAR_OUTPUT
+    fActualPosition : LREAL;
+    fActualVelocity : LREAL;
+    nAxisState      : UINT;
+    bError          : BOOL;
+    nErrorId        : UDINT;
+END_VAR
+VAR
+    fbMcJog     : MC_Jog;
+    fbMcMoveRel : MC_MoveRelative;
+    fbMcStop    : MC_Stop;
+    fbMcReset   : MC_Reset;
+    fbMcPower   : MC_Power;
+    bPowerOn    : BOOL := TRUE;
+    // Rising edge detection for incremental mode
+    rtFwd       : R_TRIG;
+    rtBwd       : R_TRIG;
+    bStepFwd    : BOOL;
+    bStepBwd    : BOOL;
+END_VAR
+    ]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+// Enable axis
+fbMcPower(
+    Axis := Axis,
+    Enable := bPowerOn,
+    Enable_Positive := TRUE,
+    Enable_Negative := TRUE
+);
+
+// Stop all axes if requested
+fbMcStop(
+    Axis := Axis,
+    Execute := bStop,
+    Deceleration := 200.0
+);
+
+// Reset errors
+fbMcReset(
+    Axis := Axis,
+    Execute := bResetError
+);
+
+// Detect rising edges for incremental mode
+rtFwd(CLK := bJogForward AND NOT bStop);
+rtBwd(CLK := bJogBackward AND NOT bStop);
+
+IF nJogMode = 0 THEN
+    // === Continuous mode: MC_Jog ===
+    // Cancel any pending incremental move
+    bStepFwd := FALSE;
+    bStepBwd := FALSE;
+
+    fbMcJog(
+        Axis := Axis,
+        JogForward := bJogForward AND NOT bStop,
+        JogBackwards := bJogBackward AND NOT bStop,
+        Velocity := fVelocity,
+        Acceleration := 100.0,
+        Deceleration := 100.0
+    );
+ELSE
+    // === Incremental mode: MC_MoveRelative on rising edge ===
+    // Trigger step on rising edge
+    IF rtFwd.Q THEN
+        bStepFwd := TRUE;
+        bStepBwd := FALSE;
+    ELSIF rtBwd.Q THEN
+        bStepBwd := TRUE;
+        bStepFwd := FALSE;
+    END_IF
+
+    fbMcMoveRel(
+        Axis := Axis,
+        Execute := bStepFwd OR bStepBwd,
+        Distance := SEL(bStepFwd, -fJogDistance, fJogDistance),
+        Velocity := fVelocity,
+        Acceleration := 100.0,
+        Deceleration := 100.0
+    );
+
+    // Clear execute after move starts or completes
+    IF fbMcMoveRel.Busy OR fbMcMoveRel.Done OR fbMcMoveRel.Error THEN
+        bStepFwd := FALSE;
+        bStepBwd := FALSE;
+    END_IF
+
+    // Keep MC_Jog idle in incremental mode
+    fbMcJog(
+        Axis := Axis,
+        JogForward := FALSE,
+        JogBackwards := FALSE,
+        Velocity := fVelocity,
+        Acceleration := 100.0,
+        Deceleration := 100.0
+    );
+END_IF
+
+// Read feedback from NC
+Axis.ReadStatus();
+fActualPosition := Axis.NcToPlc.ActPos;
+fActualVelocity := Axis.NcToPlc.ActVelo;
+nAxisState := UDINT_TO_UINT(Axis.NcToPlc.StateDWord AND 16#FF);
+bError := fbMcJog.Error OR fbMcPower.Error OR fbMcMoveRel.Error;
+nErrorId := SEL(fbMcMoveRel.Error, fbMcJog.ErrorID, fbMcMoveRel.ErrorID);
+      ]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

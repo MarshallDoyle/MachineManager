@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<imager xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <serial>25124018</serial>
+  <videoformatindex>0</videoformatindex>
+  <formatspath>C:\Program Files (x86)\Optris GmbH\PIX Connect\</formatspath>
+  <framerate>15.0</framerate>
+  <bispectral>0</bispectral>
+  <autoflag>
+    <enable>1</enable>
+    <mininterval>15.0</mininterval>
+    <maxinterval>0.0</maxinterval>
+  </autoflag>
+  <tchipmode>0</tchipmode>
+  <tchipfixedvalue>40.0</tchipfixedvalue>
+  <focus>-1</focus>
+  <enable_extended_temp_range>0</enable_extended_temp_range>
+  <buffer_queue_size>5</buffer_queue_size>
+  <enable_high_precision>0</enable_high_precision>
+  <!-- Ethernet connection for Xi 410 -->
+  <device_api>5</device_api>
+  <ethernet_device>
+    <device_ip_address>192.168.0.101</device_ip_address>
+    <local_udp_port>50101</local_udp_port>
+    <check_udp_sender_ip>1</check_udp_sender_ip>
+  </ethernet_device>
+</imager>

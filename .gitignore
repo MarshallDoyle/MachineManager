@@ -1,0 +1,19 @@
+node_modules/
+out/
+dist/
+camera-bridge/dist/
+camera-bridge/__pycache__/
+*.pyc
+.env
+
+# C++ build artifacts
+camera-bridge-cpp/build/
+camera-bridge-cpp/*.bat
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store

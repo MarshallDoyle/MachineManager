@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <GVL Name="GVL_MachineManager" Id="{00000000-0000-0000-0000-000000000001}">
+    <Declaration><![CDATA[
+// GVL_MachineManager
+// Global Variable List for Machine Manager desktop application interface.
+// These variables are read/written via ADS from the Electron application.
+//
+// The app runs on the same Beckhoff IPC as the TwinCAT runtime (localhost ADS).
+// Variables here mirror/bridge MAIN's internal state for external control.
+//
+// WARNING: Jog commands are safety-critical. A watchdog in MAIN should
+// auto-clear jog booleans if no ADS heartbeat is received.
+
+VAR_GLOBAL
+    // ===== System Commands (written by Machine Manager via ADS) =====
+    bEnableSystem       : BOOL;            // Power on all axes (maps to MAIN.bEnableSystem)
+    bHomeSystem         : BOOL;            // Start homing sequence (maps to MAIN.bHomeSystem)
+    bResetError         : BOOL;            // Reset axis errors (maps to MAIN.bResetError)
+    bStopAll            : BOOL;            // Emergency soft stop all axes
+    bStartToolMeasure   : BOOL;            // Trigger tool measurement (probe Z and Z2)
+
+    // ===== G-Code Commands =====
+    sGCodeFileName      : STRING(255) := 'PrintJob.nc';  // NCI file to load from disk
+    bLoadFile           : BOOL;            // Load G-code file into NCI interpreter
+    bRunFile            : BOOL;            // Start NCI program execution
+    bStopFile           : BOOL;            // Stop NCI program execution
+    bResetInterpreter   : BOOL;            // Reset NCI interpreter state
+    nFeedOverride       : UDINT := 1000000; // 0-1000000 (0-100%), feed rate override
+
+    // ===== Jog Commands (written by Machine Manager via ADS) =====
+    bXJogForward        : BOOL;
+    bXJogBackward       : BOOL;
+    bYJogForward        : BOOL;            // Jogs both Y_Master and Y_Slave (gantry coupled)
+    bYJogBackward       : BOOL;
+    bZJogForward        : BOOL;
+    bZJogBackward       : BOOL;
+    bZ2JogForward       : BOOL;            // Nozzle axis
+    bZ2JogBackward      : BOOL;
+    bExtJogForward      : BOOL;            // Extruder feed
+    bExtJogBackward     : BOOL;
+    fJogVelocity        : LREAL := 10.0;   // mm/s, converted from in/min by app
+    nJogMode            : INT := 0;         // 0 = continuous (MC_Jog), 1 = incremental (MC_MoveRelative)
+    fJogDistance         : LREAL := 0.0254;  // mm, step distance for incremental mode (converted from inches by app)
+
+    // ===== Axis Feedback (read by Machine Manager via ADS subscription) =====
+    fXActualPosition    : LREAL;           // mm, from axisX.NcToPlc.ActPos
+    fYActualPosition    : LREAL;           // mm, from axisY_Master.NcToPlc.ActPos
+    fZActualPosition    : LREAL;           // mm
+    fZ2ActualPosition   : LREAL;           // mm
+    fExtActualPosition  : LREAL;           // mm
+    fXActualVelocity    : LREAL;           // mm/s
+    fYActualVelocity    : LREAL;           // mm/s
+    fZActualVelocity    : LREAL;           // mm/s
+    fZ2ActualVelocity   : LREAL;           // mm/s
+    fExtActualVelocity  : LREAL;           // mm/s
+
+    // ===== Axis Status =====
+    nXAxisState         : UINT;            // MC axis state enum
+    nYAxisState         : UINT;
+    nZAxisState         : UINT;
+    nZ2AxisState        : UINT;
+    nExtAxisState       : UINT;
+    bXAxisError         : BOOL;
+    bYAxisError         : BOOL;
+    bZAxisError         : BOOL;
+    bZ2AxisError        : BOOL;
+    bExtAxisError       : BOOL;
+    nXAxisErrorId       : UDINT;
+    nYAxisErrorId       : UDINT;
+    nZAxisErrorId       : UDINT;
+    nZ2AxisErrorId      : UDINT;
+    nExtAxisErrorId     : UDINT;
+
+    // ===== Machine State (read by Machine Manager) =====
+    nMachineState       : INT;             // MAIN state machine value (0-999)
+    bAllHomed           : BOOL;            // TRUE when all axes homed successfully
+    bGroupBuilt         : BOOL;            // TRUE when NCI 3D group is configured
+    bProgramLoaded      : BOOL;            // TRUE when NCI has a program loaded
+    bProgramRunning     : BOOL;            // TRUE when NCI interpreter is executing
+    bProgramError       : BOOL;            // TRUE when NCI interpreter has error
+    nInterpreterState   : INT;             // NCI interpreter state (0-12)
+    bToolMeasureComplete: BOOL;            // TRUE when tool measurement is done
+
+    // ===== Tool Measurement Feedback =====
+    fMeasuredZ          : LREAL;           // Measured Z tool contact position (mm)
+    fMeasuredZ2         : LREAL;           // Measured Z2 nozzle contact position (mm)
+    fZToolOffset        : LREAL;           // Computed Z tool offset (mm)
+    fZ2ToolOffset       : LREAL;           // Computed Z2 tool offset (mm)
+
+    // ===== PLC Status =====
+    bPlcReady           : BOOL;            // TRUE when enabled + homed + group built + tool measured
+
+    // ===== ADS Watchdog =====
+    nAdsHeartbeat       : UDINT;           // Incremented by Machine Manager periodically
+END_VAR
+    ]]></Declaration>
+  </GVL>
+</TcPlcObject>
