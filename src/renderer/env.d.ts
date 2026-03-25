@@ -35,6 +35,12 @@ interface MachineAPI {
     setManualRange(camera: number, min: number, max: number): Promise<void>
     setEmissivity(camera: number, value: number): Promise<void>
     forceFlagCycle(camera: number): Promise<void>
+    setFocus(camera: number, value: number): Promise<void>
+    setTransmissivity(camera: number, value: number): Promise<void>
+    setAmbientTemp(camera: number, value: number): Promise<void>
+    setTempRange(camera: number, min: number, max: number): Promise<void>
+    setFlagInterval(camera: number, min: number, max: number): Promise<void>
+    getDeviceTemps(camera: number): Promise<void>
   }
   recording: {
     start(fileName: string): Promise<{ success: boolean; error?: string }>

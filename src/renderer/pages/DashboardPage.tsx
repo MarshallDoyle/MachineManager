@@ -71,6 +71,35 @@ export function DashboardPage() {
     }
   }, [])
 
+  const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [saveFileName, setSaveFileName] = useState('')
+
+  const handleRecordToggle = useCallback(async () => {
+    if (!isRecording) {
+      // Start recording immediately with a temp name
+      try {
+        await window.machineAPI.recording.start('recording')
+        setStatusMsg('Recording started...')
+      } catch (err) {
+        setStatusMsg(`Error: ${err}`)
+      }
+    } else {
+      // Show save dialog before stopping
+      setSaveFileName(gcodeFileName?.replace(/\.[^.]+$/, '') || `Build_${new Date().toISOString().slice(0, 10)}`)
+      setShowSaveDialog(true)
+    }
+  }, [isRecording, gcodeFileName])
+
+  const handleSaveRecording = useCallback(async () => {
+    setShowSaveDialog(false)
+    try {
+      await window.machineAPI.recording.stop()
+      setStatusMsg(`Recording saved as "${saveFileName}"`)
+    } catch (err) {
+      setStatusMsg(`Error: ${err}`)
+    }
+  }, [saveFileName])
+
   const allHomed = useMachineStore((s) => s.allHomed)
   const machineState = useMachineStore((s) => s.machineState)
   const toolMeasureComplete = useMachineStore((s) => s.toolMeasureComplete)
@@ -141,7 +170,74 @@ export function DashboardPage() {
             {connectionStatus === 'connecting' ? 'Connecting...' : 'Connect PLC'}
           </button>
         )}
+
+        <div className="w-px h-6 bg-zinc-700" />
+
+        {/* Record button — always available */}
+        <button
+          onClick={handleRecordToggle}
+          className={`px-4 py-1.5 text-xs font-bold rounded-md border flex items-center gap-2 ${
+            isRecording
+              ? 'bg-red-900/50 border-red-600 text-red-300 hover:bg-red-900/70'
+              : 'bg-zinc-700 border-zinc-600 text-zinc-300 hover:bg-zinc-600'
+          }`}
+        >
+          <span className={`w-2.5 h-2.5 rounded-full ${
+            isRecording ? 'bg-red-500 animate-[pulse_2s_ease-in-out_infinite]' : 'bg-red-700'
+          }`} />
+          {isRecording ? 'Stop Recording' : 'Record'}
+        </button>
+
+        {/* Run Machine button */}
+        {!isRecording ? (
+          <button
+            onClick={handleRunMachine}
+            disabled={!connected || !allHomed || !programLoaded}
+            className="px-5 py-1.5 text-xs font-bold rounded-md bg-emerald-600 border border-emerald-500 text-white hover:bg-emerald-500 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            Run Machine
+          </button>
+        ) : (
+          <button
+            onClick={handleStopBuild}
+            className="px-5 py-1.5 text-xs font-bold rounded-md bg-red-600 border border-red-500 text-white hover:bg-red-500 animate-pulse"
+          >
+            Stop Build
+          </button>
+        )}
       </div>
+
+      {/* Save recording dialog */}
+      {showSaveDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-lg p-6 w-96 shadow-xl">
+            <h3 className="text-zinc-200 font-semibold text-sm mb-3">Save Recording</h3>
+            <label className="block text-zinc-500 text-xs mb-1">Recording Name</label>
+            <input
+              type="text"
+              value={saveFileName}
+              onChange={(e) => setSaveFileName(e.target.value)}
+              autoFocus
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSaveRecording() }}
+              className="w-full px-3 py-2 text-sm bg-zinc-800 border border-zinc-600 rounded-md text-zinc-200 focus:outline-none focus:border-blue-500 mb-4"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => { setShowSaveDialog(false); window.machineAPI.recording.stop() }}
+                className="px-4 py-1.5 text-xs rounded-md bg-zinc-700 border border-zinc-600 text-zinc-400 hover:bg-zinc-600"
+              >
+                Discard
+              </button>
+              <button
+                onClick={handleSaveRecording}
+                className="px-4 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-500"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Connection error */}
       {connectionError && (
@@ -197,24 +293,6 @@ export function DashboardPage() {
               Reset Error
             </button>
 
-            <div className="w-px h-6 bg-zinc-700" />
-
-            {!isRecording ? (
-              <button
-                onClick={handleRunMachine}
-                disabled={!allHomed || !programLoaded || isRecording}
-                className="px-5 py-1.5 text-xs font-bold rounded-md bg-emerald-600 border border-emerald-500 text-white hover:bg-emerald-500 disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                Run Machine
-              </button>
-            ) : (
-              <button
-                onClick={handleStopBuild}
-                className="px-5 py-1.5 text-xs font-bold rounded-md bg-red-600 border border-red-500 text-white hover:bg-red-500 animate-pulse"
-              >
-                Stop Build
-              </button>
-            )}
           </div>
 
           {/* Tool measurement feedback */}

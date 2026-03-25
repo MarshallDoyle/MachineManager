@@ -91,14 +91,26 @@ export interface CameraSettings {
   manualMin: number
   manualMax: number
   emissivity: number
+  transmissivity: number
+  ambientTemp: number  // -100 = auto
+  focusPosition: number  // 0-100%, -1 = no motor
+  flagMinInterval: number
+  flagMaxInterval: number
   showOverlay: boolean
   showColorBar: boolean
   showCrosshairs: boolean
 }
 
+export const TEMP_RANGE_OPTIONS = [
+  { label: '-20 to 100°C', min: -20, max: 100 },
+  { label: '0 to 250°C', min: 0, max: 250 },
+  { label: '150 to 900°C', min: 150, max: 900 },
+  { label: '450 to 1800°C', min: 450, max: 1800 }
+]
+
 export const DEFAULT_CAMERA_SETTINGS: CameraSettings[] = [
-  { palette: 'iron', scaling: 'minmax', manualMin: 450, manualMax: 1800, emissivity: 0.95, showOverlay: true, showColorBar: true, showCrosshairs: true },
-  { palette: 'iron', scaling: 'sigma3', manualMin: 0, manualMax: 250, emissivity: 0.95, showOverlay: true, showColorBar: true, showCrosshairs: true }
+  { palette: 'iron', scaling: 'minmax', manualMin: 450, manualMax: 1800, emissivity: 0.95, transmissivity: 1.0, ambientTemp: -100, focusPosition: -1, flagMinInterval: 15, flagMaxInterval: 0, showOverlay: true, showColorBar: true, showCrosshairs: true },
+  { palette: 'iron', scaling: 'sigma3', manualMin: -20, manualMax: 100, emissivity: 0.95, transmissivity: 1.0, ambientTemp: -100, focusPosition: 50, flagMinInterval: 15, flagMaxInterval: 0, showOverlay: true, showColorBar: true, showCrosshairs: true }
 ]
 
 export interface PlcStatus {

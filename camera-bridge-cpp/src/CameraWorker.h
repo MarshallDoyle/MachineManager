@@ -69,6 +69,8 @@ public:
     void setManualRange(float min, float max);
     void setEmissivity(float emissivity);
     void forceFlagCycle();
+    void setTransmissivity(float transmissivity);
+    std::string getDeviceTemps();
 
     // --- IRImagerClient callbacks ---
     void onRawFrame(unsigned char* data, int size) override;
@@ -96,6 +98,7 @@ private:
     std::atomic<float>         _meanTemp{0.0f};
     std::atomic<unsigned int>  _frameCount{0};
     std::atomic<bool>          _running{false};
+    float                      _lastEmissivity{1.0f};
     std::atomic<bool>          _initSuccess{false};
 
     // RGB buffer for palette conversion

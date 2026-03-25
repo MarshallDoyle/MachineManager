@@ -170,16 +170,86 @@ public:
     {
         if (_imager)
         {
+            try { _imager->forceFlagEvent(); std::cout << "[" << _name << "] Flag cycle forced" << std::endl; }
+            catch (const optris::SDKException& ex) { std::cerr << "[" << _name << "] " << ex.what() << std::endl; }
+        }
+    }
+
+    void setFocusPosition(float position)
+    {
+        if (_imager)
+        {
+            try { _imager->setFocusMotorPosition(position); std::cout << "[" << _name << "] Focus set to " << position << "%" << std::endl; }
+            catch (const optris::SDKException& ex) { std::cerr << "[" << _name << "] " << ex.what() << std::endl; }
+        }
+    }
+
+    void setTransmissivity(float transmissivity)
+    {
+        if (_imager)
+        {
             try
             {
-                _imager->forceFlagEvent();
-                std::cout << "[" << _name << "] Flag cycle forced" << std::endl;
+                auto params = _imager->getRadiationParameters();
+                params.transmissivity = transmissivity;
+                _imager->setRadiationParameters(params);
+                std::cout << "[" << _name << "] Transmissivity set to " << transmissivity << std::endl;
             }
-            catch (const optris::SDKException& ex)
-            {
-                std::cerr << "[" << _name << "] Failed to force flag: " << ex.what() << std::endl;
-            }
+            catch (const optris::SDKException& ex) { std::cerr << "[" << _name << "] " << ex.what() << std::endl; }
         }
+    }
+
+    void setAmbientTemperature(float temp)
+    {
+        if (_imager)
+        {
+            try
+            {
+                auto params = _imager->getRadiationParameters();
+                params.ambientTemperature = temp;
+                _imager->setRadiationParameters(params);
+                std::cout << "[" << _name << "] Ambient temp set to " << temp << " C" << std::endl;
+            }
+            catch (const optris::SDKException& ex) { std::cerr << "[" << _name << "] " << ex.what() << std::endl; }
+        }
+    }
+
+    void setTempRange(float minTemp, float maxTemp)
+    {
+        if (_imager)
+        {
+            try
+            {
+                _imager->setActiveOperationMode(0, "", minTemp, maxTemp, 0, 0, 0);
+                std::cout << "[" << _name << "] Temp range set to " << minTemp << " - " << maxTemp << " C" << std::endl;
+            }
+            catch (const optris::SDKException& ex) { std::cerr << "[" << _name << "] " << ex.what() << std::endl; }
+        }
+    }
+
+    void setFlagInterval(float minInterval, float maxInterval)
+    {
+        if (_imager)
+        {
+            try { _imager->setFlagInterval(minInterval, maxInterval); std::cout << "[" << _name << "] Flag interval: " << minInterval << "s min, " << maxInterval << "s max" << std::endl; }
+            catch (const optris::SDKException& ex) { std::cerr << "[" << _name << "] " << ex.what() << std::endl; }
+        }
+    }
+
+    std::string getDeviceTemps()
+    {
+        if (!_imager) return "{}";
+        try
+        {
+            float flagT = _imager->getTemperatureFlag();
+            float boxT = _imager->getTemperatureBox();
+            float chipT = _imager->getTemperatureChip();
+            std::ostringstream ss;
+            ss << std::fixed << std::setprecision(1);
+            ss << "{\"flag\":" << flagT << ",\"box\":" << boxT << ",\"chip\":" << chipT << "}";
+            return ss.str();
+        }
+        catch (...) { return "{}"; }
     }
 
 private:

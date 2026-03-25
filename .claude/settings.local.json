@@ -85,7 +85,11 @@
       "Bash(\"/c/Users/dival/Downloads/otcsdk-10.1.1-AMD64.exe\" /S)",
       "Bash(cmd.exe /C \"start /wait C:\\\\Users\\\\dival\\\\Downloads\\\\otcsdk-10.1.1-AMD64.exe\" 2>&1)",
       "Bash(cmd.exe /C \"echo %OTC_SDK_DIR%\")",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "WebFetch(domain:beacon3d.com)",
+      "WebFetch(domain:www.micro-epsilon.com)",
+      "WebFetch(domain:www.polytec.com)",
+      "WebSearch"
     ]
   }
 }

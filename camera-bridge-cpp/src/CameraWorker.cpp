@@ -1,6 +1,8 @@
 #include "CameraWorker.h"
 #include <iostream>
 #include <cstring>
+#include <sstream>
+#include <iomanip>
 
 // stb JPEG encoding
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -152,9 +154,9 @@ void CameraWorker::onThermalFrame(unsigned short* data, unsigned int w, unsigned
     _iBuilder.setData(w, h, data);
     _iBuilder.convertTemperatureToPaletteImage(_rgbBuffer, true); // ignoreStride=true
 
-    // Compute metadata using ImageBuilder
+    // Compute metadata using ImageBuilder (stay 1px inside border to avoid SDK warning)
     FrameMetadata fmeta;
-    fmeta.mean = _iBuilder.getMeanTemperature(0, 0, w - 1, h - 1);
+    fmeta.mean = _iBuilder.getMeanTemperature(1, 1, w - 2, h - 2);
     fmeta.scaleMin = _iBuilder.getIsothermalMin();
     fmeta.scaleMax = _iBuilder.getIsothermalMax();
     fmeta.palette = static_cast<int>(_iBuilder.getPalette());
@@ -220,6 +222,7 @@ void CameraWorker::setManualRange(float min, float max)
 void CameraWorker::setEmissivity(float emissivity)
 {
     if (_imager) {
+        _lastEmissivity = emissivity;
         _imager->setRadiationParameters(emissivity, 1.0f);
         std::cout << "[" << _name << "] Emissivity set to " << emissivity << std::endl;
     }
@@ -231,4 +234,25 @@ void CameraWorker::forceFlagCycle()
         _imager->forceFlagEvent();
         std::cout << "[" << _name << "] Flag cycle forced" << std::endl;
     }
+}
+
+void CameraWorker::setTransmissivity(float transmissivity)
+{
+    if (_imager) {
+        // Old Direct SDK: setRadiationParameters(emissivity, transmissivity)
+        _imager->setRadiationParameters(_lastEmissivity, transmissivity);
+        std::cout << "[" << _name << "] Transmissivity set to " << transmissivity << std::endl;
+    }
+}
+
+std::string CameraWorker::getDeviceTemps()
+{
+    if (!_imager) return "{}";
+    float flagT = _imager->getTempFlag();
+    float boxT = _imager->getTempBox();
+    float chipT = _imager->getTempChip();
+    std::ostringstream ss;
+    ss << std::fixed << std::setprecision(1);
+    ss << "{\"flag\":" << flagT << ",\"box\":" << boxT << ",\"chip\":" << chipT << "}";
+    return ss.str();
 }

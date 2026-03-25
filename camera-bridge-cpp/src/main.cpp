@@ -173,6 +173,12 @@ struct ICameraSource {
     virtual void setManualRange(float min, float max) = 0;
     virtual void setEmissivity(float emissivity) = 0;
     virtual void forceFlagCycle() = 0;
+    virtual void setFocusPosition(float position) = 0;
+    virtual void setTransmissivity(float transmissivity) = 0;
+    virtual void setAmbientTemperature(float temp) = 0;
+    virtual void setTempRange(float minTemp, float maxTemp) = 0;
+    virtual void setFlagInterval(float minInterval, float maxInterval) = 0;
+    virtual std::string getDeviceTemps() = 0;
 };
 
 struct USBCameraAdapter : ICameraSource {
@@ -189,6 +195,12 @@ struct USBCameraAdapter : ICameraSource {
     void setManualRange(float min, float max) override { worker.setManualRange(min, max); }
     void setEmissivity(float emissivity) override { worker.setEmissivity(emissivity); }
     void forceFlagCycle() override { worker.forceFlagCycle(); }
+    void setFocusPosition(float) override { /* USB PI 1M has no focus motor */ }
+    void setTransmissivity(float t) override { worker.setTransmissivity(t); }
+    void setAmbientTemperature(float) override { /* Not supported on old Direct SDK */ }
+    void setTempRange(float, float) override { /* Not supported on old Direct SDK at runtime */ }
+    void setFlagInterval(float, float) override { /* Not supported on old Direct SDK */ }
+    std::string getDeviceTemps() override { return worker.getDeviceTemps(); }
 };
 
 struct OtcCameraAdapter : ICameraSource {
@@ -206,6 +218,12 @@ struct OtcCameraAdapter : ICameraSource {
     void setManualRange(float min, float max) override { worker.setManualRange(min, max); }
     void setEmissivity(float value) override { worker.setEmissivity(value); }
     void forceFlagCycle() override { worker.forceFlagCycle(); }
+    void setFocusPosition(float pos) override { worker.setFocusPosition(pos); }
+    void setTransmissivity(float t) override { worker.setTransmissivity(t); }
+    void setAmbientTemperature(float temp) override { worker.setAmbientTemperature(temp); }
+    void setTempRange(float minT, float maxT) override { worker.setTempRange(minT, maxT); }
+    void setFlagInterval(float minI, float maxI) override { worker.setFlagInterval(minI, maxI); }
+    std::string getDeviceTemps() override { return worker.getDeviceTemps(); }
 };
 
 static void processCommand(const std::string& cmdLine, std::vector<ICameraSource*>& cameras,
@@ -238,6 +256,26 @@ static void processCommand(const std::string& cmdLine, std::vector<ICameraSource
             cam->setEmissivity(value);
         } else if (cmd == "forceFlagCycle") {
             cam->forceFlagCycle();
+        } else if (cmd == "setFocus") {
+            float value = j.value("value", 50.0f);
+            cam->setFocusPosition(value);
+        } else if (cmd == "setTransmissivity") {
+            float value = j.value("value", 1.0f);
+            cam->setTransmissivity(value);
+        } else if (cmd == "setAmbientTemp") {
+            float value = j.value("value", -100.0f);
+            cam->setAmbientTemperature(value);
+        } else if (cmd == "setTempRange") {
+            float minT = j.value("min", 0.0f);
+            float maxT = j.value("max", 0.0f);
+            cam->setTempRange(minT, maxT);
+        } else if (cmd == "setFlagInterval") {
+            float minI = j.value("min", 15.0f);
+            float maxI = j.value("max", 0.0f);
+            cam->setFlagInterval(minI, maxI);
+        } else if (cmd == "getDeviceTemps") {
+            std::string temps = cam->getDeviceTemps();
+            std::cout << "DEVICE_TEMPS:" << camIdx << ":" << temps << std::endl;
         } else {
             std::cout << "CMD_ERR: unknown command '" << cmd << "'" << std::endl;
             return;

@@ -69,7 +69,19 @@ const machineAPI = {
     setEmissivity: (camera: number, value: number) =>
       ipcRenderer.invoke('camera:set-emissivity', camera, value),
     forceFlagCycle: (camera: number) =>
-      ipcRenderer.invoke('camera:force-flag-cycle', camera)
+      ipcRenderer.invoke('camera:force-flag-cycle', camera),
+    setFocus: (camera: number, value: number) =>
+      ipcRenderer.invoke('camera:set-focus', camera, value),
+    setTransmissivity: (camera: number, value: number) =>
+      ipcRenderer.invoke('camera:set-transmissivity', camera, value),
+    setAmbientTemp: (camera: number, value: number) =>
+      ipcRenderer.invoke('camera:set-ambient-temp', camera, value),
+    setTempRange: (camera: number, min: number, max: number) =>
+      ipcRenderer.invoke('camera:set-temp-range', camera, min, max),
+    setFlagInterval: (camera: number, min: number, max: number) =>
+      ipcRenderer.invoke('camera:set-flag-interval', camera, min, max),
+    getDeviceTemps: (camera: number) =>
+      ipcRenderer.invoke('camera:get-device-temps', camera)
   },
   recording: {
     start: (fileName: string) => ipcRenderer.invoke('recording:start', fileName),

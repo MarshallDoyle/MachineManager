@@ -49,4 +49,28 @@ export function registerCameraHandlers(mainWindow: BrowserWindow): void {
   ipcMain.handle('camera:force-flag-cycle', (_e, camera: number) => {
     cameraBridgeService.sendCommand({ cmd: 'forceFlagCycle', camera })
   })
+
+  ipcMain.handle('camera:set-focus', (_e, camera: number, value: number) => {
+    cameraBridgeService.sendCommand({ cmd: 'setFocus', camera, value })
+  })
+
+  ipcMain.handle('camera:set-transmissivity', (_e, camera: number, value: number) => {
+    cameraBridgeService.sendCommand({ cmd: 'setTransmissivity', camera, value })
+  })
+
+  ipcMain.handle('camera:set-ambient-temp', (_e, camera: number, value: number) => {
+    cameraBridgeService.sendCommand({ cmd: 'setAmbientTemp', camera, value })
+  })
+
+  ipcMain.handle('camera:set-temp-range', (_e, camera: number, min: number, max: number) => {
+    cameraBridgeService.sendCommand({ cmd: 'setTempRange', camera, min, max })
+  })
+
+  ipcMain.handle('camera:set-flag-interval', (_e, camera: number, min: number, max: number) => {
+    cameraBridgeService.sendCommand({ cmd: 'setFlagInterval', camera, min, max })
+  })
+
+  ipcMain.handle('camera:get-device-temps', (_e, camera: number) => {
+    cameraBridgeService.sendCommand({ cmd: 'getDeviceTemps', camera })
+  })
 }
