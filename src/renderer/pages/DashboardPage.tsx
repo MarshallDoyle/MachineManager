@@ -6,6 +6,9 @@ import { useAdsConnection } from '../hooks/useAdsConnection'
 import { useMachineStore } from '../stores/machineStore'
 import { useRecordingStore } from '../stores/recordingStore'
 import { AmbrellDashboardWidget } from '../components/ambrell/AmbrellDashboardWidget'
+import { BuildPlateWidget } from '../components/dashboard/BuildPlateWidget'
+import { MeltpoolWidget } from '../components/dashboard/MeltpoolWidget'
+import { RunNotes } from '../components/dashboard/RunNotes'
 
 export function DashboardPage() {
   const { connectionStatus, connectionError, connect, disconnect } = useAdsConnection()
@@ -313,20 +316,27 @@ export function DashboardPage() {
         </div>
       )}
 
-      {/* Camera feeds */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Camera feeds — fixed height row */}
+      <div className="grid grid-cols-2 gap-3" style={{ maxHeight: '340px' }}>
         <CameraFeed title="Meltpool Camera (PI 1M)" streamUrl={meltpoolWsUrl} mode="websocket" cameraIndex={0} />
         <CameraFeed title="Build Plate Camera (Xi 410)" streamUrl={buildPlateWsUrl} mode="websocket" cameraIndex={1} />
       </div>
 
-      {/* Ambrell heater widget */}
+      {/* Middle row: monitoring widgets */}
+      <div className="grid grid-cols-3 gap-3">
+        <MeltpoolWidget />
+        <BuildPlateWidget />
+        <RunNotes />
+      </div>
+
+      {/* Ambrell heater — full width, prominent */}
       <AmbrellDashboardWidget />
 
-      {/* Jog controls */}
-      <JogPanel />
-
-      {/* Axis status */}
-      <AxisStatus />
+      {/* Jog + Axis in two columns */}
+      <div className="grid grid-cols-[1fr_auto] gap-3">
+        <JogPanel />
+        <AxisStatus />
+      </div>
     </div>
   )
 }

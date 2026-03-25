@@ -12,10 +12,34 @@ interface CameraFeedProps {
 }
 
 export function CameraFeed({ title, streamUrl, mode = 'mjpeg', cameraIndex = 0 }: CameraFeedProps) {
-  if (mode === 'websocket') {
-    return <WebSocketFeed title={title} wsUrl={streamUrl} cameraIndex={cameraIndex} />
+  const [fullscreen, setFullscreen] = useState(false)
+
+  const feed = mode === 'websocket'
+    ? <WebSocketFeed title={title} wsUrl={streamUrl} cameraIndex={cameraIndex} onFullscreenToggle={() => setFullscreen(!fullscreen)} />
+    : <MjpegFeed title={title} streamUrl={streamUrl} />
+
+  if (fullscreen) {
+    return (
+      <div
+        className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+        onKeyDown={(e) => { if (e.key === 'Escape') setFullscreen(false) }}
+        tabIndex={0}
+        ref={(el) => el?.focus()}
+      >
+        <button
+          onClick={() => setFullscreen(false)}
+          className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded bg-zinc-800/80 text-zinc-300 hover:bg-zinc-700 text-lg"
+        >
+          {'\u2715'}
+        </button>
+        <div className="w-full h-full max-w-[95vw] max-h-[95vh]">
+          {feed}
+        </div>
+      </div>
+    )
   }
-  return <MjpegFeed title={title} streamUrl={streamUrl} />
+
+  return feed
 }
 
 function MjpegFeed({ title, streamUrl }: { title: string; streamUrl: string | null }) {
@@ -82,7 +106,7 @@ function parseFrame(buffer: ArrayBuffer): { metadata: FrameMetadata | null; jpeg
   }
 }
 
-function WebSocketFeed({ title, wsUrl, cameraIndex }: { title: string; wsUrl: string | null; cameraIndex: number }) {
+function WebSocketFeed({ title, wsUrl, cameraIndex, onFullscreenToggle }: { title: string; wsUrl: string | null; cameraIndex: number; onFullscreenToggle?: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
   const [status, setStatus] = useState<'connecting' | 'live' | 'error' | 'offline'>('offline')
@@ -192,7 +216,7 @@ function WebSocketFeed({ title, wsUrl, cameraIndex }: { title: string; wsUrl: st
 
   return (
     <div className="bg-zinc-900 border border-zinc-700 rounded-lg overflow-hidden flex flex-col">
-      <CameraHeader title={title} status={status} fps={fps} metadata={metadata} />
+      <CameraHeader title={title} status={status} fps={fps} metadata={metadata} onFullscreen={onFullscreenToggle} />
       <div className="relative flex-1 flex">
         <div className="relative flex-1 bg-black flex items-center justify-center min-h-[240px]">
           {wsUrl ? (
@@ -228,7 +252,7 @@ function WebSocketFeed({ title, wsUrl, cameraIndex }: { title: string; wsUrl: st
   )
 }
 
-function CameraHeader({ title, status, fps, metadata }: { title: string; status: string; fps?: number; metadata?: FrameMetadata | null }) {
+function CameraHeader({ title, status, fps, metadata, onFullscreen }: { title: string; status: string; fps?: number; metadata?: FrameMetadata | null; onFullscreen?: () => void }) {
   const statusConfig = {
     live: { color: 'text-green-400', dot: 'bg-green-400', label: 'Live' },
     connecting: { color: 'text-yellow-400', dot: 'bg-yellow-400 animate-pulse', label: 'Connecting...' },
@@ -248,6 +272,15 @@ function CameraHeader({ title, status, fps, metadata }: { title: string; status:
           <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
           {statusConfig.label}
         </span>
+        {onFullscreen && (
+          <button
+            onClick={onFullscreen}
+            className="text-zinc-500 hover:text-zinc-300 ml-1"
+            title="Fullscreen"
+          >
+            {'\u26F6'}
+          </button>
+        )}
       </div>
     </div>
   )

@@ -36,6 +36,7 @@ interface MachineState {
 
   // G-code
   gcodeFileName: string | null
+  runNotes: string
 
   // Tool measurement
   measuredZ: number
@@ -57,6 +58,7 @@ interface MachineState {
   setCameraEmissivity: (camera: number, value: number) => void
   setCameraOverlay: (camera: number, key: 'showOverlay' | 'showColorBar' | 'showCrosshairs', value: boolean) => void
   setGcodeFileName: (name: string | null) => void
+  setRunNotes: (notes: string) => void
   setPlcReady: (ready: boolean) => void
   setFeedOverride: (percent: number) => void
 }
@@ -102,6 +104,7 @@ export const useMachineStore = create<MachineState>((set) => ({
   toolMeasureComplete: false,
   feedOverride: 100,
   gcodeFileName: null,
+  runNotes: '',
 
   // Tool measurement
   measuredZ: 0,
@@ -251,6 +254,7 @@ export const useMachineStore = create<MachineState>((set) => ({
   },
 
   setGcodeFileName: (name) => set({ gcodeFileName: name }),
+  setRunNotes: (notes) => set({ runNotes: notes }),
 
   setCameraOverlay: (camera, key, value) => {
     set((state) => {
