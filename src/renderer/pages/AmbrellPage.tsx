@@ -35,7 +35,7 @@ export function AmbrellPage() {
           </div>
           <div>
             <span className="text-zinc-500">Frequency Range</span>
-            <div className="text-zinc-300 font-mono">50-150 kHz</div>
+            <div className="text-zinc-300 font-mono">150-400 kHz</div>
           </div>
           <div>
             <span className="text-zinc-500">Interface</span>

@@ -32,7 +32,7 @@ export function AmbrellConnectionBar() {
             Ambrell EASYHEAT 8310
           </span>
         </div>
-        <span className="text-zinc-600 text-xs">10 kW | 50-150 kHz</span>
+        <span className="text-zinc-600 text-xs">10 kW | 150-400 kHz</span>
         {status === 'connected' && (
           <span className="text-green-400 text-xs">Connected (RS485)</span>
         )}
