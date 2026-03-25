@@ -89,7 +89,10 @@
       "WebFetch(domain:beacon3d.com)",
       "WebFetch(domain:www.micro-epsilon.com)",
       "WebFetch(domain:www.polytec.com)",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch(domain:www.ambrell.com)",
+      "WebFetch(domain:manualzz.com)",
+      "WebFetch(domain:www.manualslib.com)"
     ]
   }
 }

@@ -5,6 +5,7 @@ import { AxisStatus } from '../components/status/AxisStatus'
 import { useAdsConnection } from '../hooks/useAdsConnection'
 import { useMachineStore } from '../stores/machineStore'
 import { useRecordingStore } from '../stores/recordingStore'
+import { AmbrellDashboardWidget } from '../components/ambrell/AmbrellDashboardWidget'
 
 export function DashboardPage() {
   const { connectionStatus, connectionError, connect, disconnect } = useAdsConnection()
@@ -317,6 +318,9 @@ export function DashboardPage() {
         <CameraFeed title="Meltpool Camera (PI 1M)" streamUrl={meltpoolWsUrl} mode="websocket" cameraIndex={0} />
         <CameraFeed title="Build Plate Camera (Xi 410)" streamUrl={buildPlateWsUrl} mode="websocket" cameraIndex={1} />
       </div>
+
+      {/* Ambrell heater widget */}
+      <AmbrellDashboardWidget />
 
       {/* Jog controls */}
       <JogPanel />

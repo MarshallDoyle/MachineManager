@@ -6,6 +6,7 @@ import { JogPage } from '../../pages/JogPage'
 import { VariablesPage } from '../../pages/VariablesPage'
 import { SettingsPage } from '../../pages/SettingsPage'
 import { GcodePage } from '../../pages/GcodePage'
+import { AmbrellPage } from '../../pages/AmbrellPage'
 import { BuildPlateScanPage } from '../../pages/BuildPlateScanPage'
 import { AnalysisPage } from '../../pages/AnalysisPage'
 
@@ -20,6 +21,8 @@ export function AppShell() {
         return <JogPage />
       case 'gcode':
         return <GcodePage />
+      case 'ambrell':
+        return <AmbrellPage />
       case 'scan':
         return <BuildPlateScanPage />
       case 'analysis':
