@@ -73,7 +73,7 @@ const defaultAxis: AxisState = {
 
 export const useMachineStore = create<MachineState>((set) => ({
   connectionStatus: 'disconnected',
-  adsConfig: { targetAmsNetId: '127.0.0.1.1.1', targetAdsPort: 851 },
+  adsConfig: { targetAmsNetId: '10.1.180.201.1.1', targetAdsPort: 851 },
 
   axes: {
     x: { ...defaultAxis },

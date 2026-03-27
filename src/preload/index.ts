@@ -26,6 +26,8 @@ const machineAPI = {
       ipcRenderer.invoke('ads:is-connected'),
     diagnose: () =>
       ipcRenderer.invoke('ads:diagnose'),
+    testConnection: (config: { targetAmsNetId: string; targetAdsPort: number }) =>
+      ipcRenderer.invoke('ads:test-connection', config),
     // System commands
     enableSystem: (enable: boolean) =>
       ipcRenderer.invoke('ads:enable-system', enable),

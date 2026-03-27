@@ -44,14 +44,29 @@ export function registerAdsHandlers(mainWindow: BrowserWindow): void {
       mainWindow.webContents.send('ads:connection-change', true)
       return { success: true }
     } catch (err) {
-      // Connection failed entirely — try to diagnose why
-      let errorMsg = String(err)
+      // Connection failed entirely — provide actionable error message
+      const rawError = String(err)
+      console.error('ADS connection failed:', rawError)
+
+      let errorMsg: string
+      if (rawError.includes('ECONNREFUSED')) {
+        errorMsg = `Cannot reach PLC at ${config.targetAmsNetId}:${config.targetAdsPort}. Check that the CX5340 is powered on, TwinCAT is running, and the network cable is connected.`
+      } else if (rawError.includes('ETIMEDOUT') || rawError.includes('timeout')) {
+        errorMsg = `Connection timed out reaching ${config.targetAmsNetId}. Verify the AMS NetId is correct and the CX5340 is on the same network.`
+      } else if (rawError.includes('AmsNetId')) {
+        errorMsg = `Invalid AMS NetId format: ${config.targetAmsNetId}. Expected format: x.x.x.x.x.x (e.g., 10.1.180.201.1.1)`
+      } else {
+        errorMsg = `Connection failed: ${rawError}`
+      }
+
+      // Try diagnosis as a fallback
       try {
         const diagnosis = await adsService.diagnoseConnection()
-        errorMsg = diagnosis.message
+        if (diagnosis.message) errorMsg = diagnosis.message
       } catch {
-        // Can't diagnose, use original error
+        // Can't diagnose without connection, use the friendly error
       }
+
       mainWindow.webContents.send('ads:connection-change', false, errorMsg)
       return { success: false, error: errorMsg }
     }
@@ -245,5 +260,58 @@ export function registerAdsHandlers(mainWindow: BrowserWindow): void {
 
   ipcMain.handle('ads:is-connected', () => {
     return adsService.isConnected()
+  })
+
+  ipcMain.handle('ads:test-connection', async (_event, config: { targetAmsNetId: string; targetAdsPort: number }) => {
+    const steps: Array<{ step: string; status: 'ok' | 'fail' | 'skip'; detail: string }> = []
+
+    try {
+      // Step 1: Try to connect
+      console.log(`[ADS Test] Connecting to ${config.targetAmsNetId}:${config.targetAdsPort}...`)
+      await adsService.connect(config)
+      steps.push({ step: 'Network Connection', status: 'ok', detail: `Reached ${config.targetAmsNetId}` })
+    } catch (err) {
+      const e = String(err)
+      if (e.includes('ECONNREFUSED')) {
+        steps.push({ step: 'Network Connection', status: 'fail', detail: `Connection refused at ${config.targetAmsNetId}:${config.targetAdsPort}. Is TwinCAT running?` })
+      } else if (e.includes('ETIMEDOUT') || e.includes('timeout')) {
+        steps.push({ step: 'Network Connection', status: 'fail', detail: `Timed out reaching ${config.targetAmsNetId}. Check network and AMS NetId.` })
+      } else {
+        steps.push({ step: 'Network Connection', status: 'fail', detail: e })
+      }
+      return { steps }
+    }
+
+    try {
+      // Step 2: TwinCAT system state
+      const diagnosis = await adsService.diagnoseConnection()
+      if (diagnosis.status === 'tc_config_mode') {
+        steps.push({ step: 'TwinCAT Runtime', status: 'fail', detail: 'TwinCAT is in Config mode. Activate and switch to Run mode.' })
+        await adsService.disconnect()
+        return { steps }
+      }
+      steps.push({ step: 'TwinCAT Runtime', status: 'ok', detail: 'TwinCAT is in Run mode' })
+
+      if (diagnosis.status === 'plc_not_running') {
+        steps.push({ step: 'PLC Runtime', status: 'fail', detail: 'PLC is stopped. Start the PLC in TwinCAT XAE.' })
+        await adsService.disconnect()
+        return { steps }
+      }
+      steps.push({ step: 'PLC Runtime', status: 'ok', detail: 'PLC is running on port 851' })
+
+      if (diagnosis.status === 'symbols_not_found') {
+        steps.push({ step: 'PLC Symbols', status: 'fail', detail: 'GVL_MachineManager not found. Compile and download the PLC program.' })
+        await adsService.disconnect()
+        return { steps }
+      }
+      steps.push({ step: 'PLC Symbols', status: 'ok', detail: 'GVL_MachineManager symbols accessible' })
+    } catch (err) {
+      steps.push({ step: 'Diagnosis', status: 'fail', detail: String(err) })
+    }
+
+    // Disconnect test connection (don't leave it open)
+    try { await adsService.disconnect() } catch { /* ignore */ }
+
+    return { steps }
   })
 }

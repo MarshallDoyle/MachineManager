@@ -24,11 +24,25 @@ export function useAdsConnection() {
       updateAxisData(data)
     })
 
+    // Auto-connect to PLC on startup
+    window.machineAPI.ads.isConnected().then((connected) => {
+      if (!connected) {
+        console.log('[ADS] Auto-connecting to', adsConfig.targetAmsNetId)
+        setConnectionStatus('connecting')
+        window.machineAPI.ads.connect(adsConfig).then((result) => {
+          if (!result.success) {
+            setConnectionStatus('error')
+            setConnectionError(result.error ?? 'Auto-connect failed')
+          }
+        })
+      }
+    })
+
     return () => {
       unsubConnection()
       unsubSymbol()
     }
-  }, [setConnectionStatus, updateAxisData])
+  }, [setConnectionStatus, updateAxisData, adsConfig])
 
   const connect = async () => {
     setConnectionStatus('connecting')

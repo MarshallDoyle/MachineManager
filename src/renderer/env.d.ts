@@ -14,6 +14,7 @@ interface MachineAPI {
     setJogDistance(distanceMm: number): Promise<{ success: boolean; error?: string }>
     isConnected(): Promise<boolean>
     diagnose(): Promise<{ status: string; message: string }>
+    testConnection(config: { targetAmsNetId: string; targetAdsPort: number }): Promise<{ steps: Array<{ step: string; status: 'ok' | 'fail' | 'skip'; detail: string }> }>
     // System commands
     enableSystem(enable: boolean): Promise<{ success: boolean; error?: string }>
     homeSystem(): Promise<{ success: boolean; error?: string }>

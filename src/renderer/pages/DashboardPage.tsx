@@ -243,11 +243,19 @@ export function DashboardPage() {
         </div>
       )}
 
-      {/* Connection error */}
+      {/* Connection error with diagnostics */}
       {connectionError && (
-        <div className="bg-red-900/20 border border-red-800 rounded-lg px-4 py-2 text-xs text-red-400">
-          <span className="font-medium">Connection failed: </span>
-          {connectionError}
+        <div className="bg-red-900/20 border border-red-800 rounded-lg px-4 py-3 text-xs text-red-400">
+          <div className="flex items-start justify-between">
+            <div>
+              <span className="font-semibold">Connection failed: </span>
+              {connectionError}
+            </div>
+          </div>
+          <div className="mt-2 text-red-400/70">
+            Target: <span className="font-mono">{useMachineStore.getState().adsConfig.targetAmsNetId}:{useMachineStore.getState().adsConfig.targetAdsPort}</span>
+            <span className="ml-3">Check Settings page to verify AMS NetId and ensure CX5340 is powered on with TwinCAT in Run mode.</span>
+          </div>
         </div>
       )}
 
