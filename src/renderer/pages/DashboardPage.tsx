@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { CameraFeed } from '../components/camera/CameraFeed'
 import { JogPanel } from '../components/jog/JogPanel'
-import { AxisStatus } from '../components/status/AxisStatus'
+// AxisStatus readouts now integrated into JogPanel
 import { useAdsConnection } from '../hooks/useAdsConnection'
 import { useMachineStore } from '../stores/machineStore'
 import { useRecordingStore } from '../stores/recordingStore'
@@ -325,7 +325,7 @@ export function DashboardPage() {
       )}
 
       {/* Camera feeds — fixed height row */}
-      <div className="grid grid-cols-2 gap-3" style={{ maxHeight: '340px' }}>
+      <div className="grid grid-cols-2 gap-3 overflow-hidden" style={{ maxHeight: '340px' }}>
         <CameraFeed title="Meltpool Camera (PI 1M)" streamUrl={meltpoolWsUrl} mode="websocket" cameraIndex={0} />
         <CameraFeed title="Build Plate Camera (Xi 410)" streamUrl={buildPlateWsUrl} mode="websocket" cameraIndex={1} />
       </div>
@@ -340,11 +340,8 @@ export function DashboardPage() {
       {/* Ambrell heater — full width, prominent */}
       <AmbrellDashboardWidget />
 
-      {/* Jog + Axis in two columns */}
-      <div className="grid grid-cols-[1fr_auto] gap-3">
-        <JogPanel />
-        <AxisStatus />
-      </div>
+      {/* Jog controls */}
+      <JogPanel />
     </div>
   )
 }
