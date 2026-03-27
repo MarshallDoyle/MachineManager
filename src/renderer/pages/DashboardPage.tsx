@@ -9,6 +9,9 @@ import { AmbrellDashboardWidget } from '../components/ambrell/AmbrellDashboardWi
 import { BuildPlateWidget } from '../components/dashboard/BuildPlateWidget'
 import { MeltpoolWidget } from '../components/dashboard/MeltpoolWidget'
 import { RunNotes } from '../components/dashboard/RunNotes'
+import { HeatedBedWidget } from '../components/dashboard/HeatedBedWidget'
+import { ScannerWidget } from '../components/dashboard/ScannerWidget'
+import { GcodeWidget } from '../components/dashboard/GcodeWidget'
 
 export function DashboardPage() {
   const { connectionStatus, connectionError, connect, disconnect } = useAdsConnection()
@@ -155,7 +158,7 @@ export function DashboardPage() {
   const isError = machineState === 999
 
   return (
-    <div className="space-y-4 max-w-[1400px]">
+    <div className="space-y-3">
       {/* Connect bar */}
       <div className="flex items-center gap-3">
         {connectionStatus === 'connected' ? (
@@ -324,24 +327,38 @@ export function DashboardPage() {
         </div>
       )}
 
-      {/* Camera feeds — fixed height row */}
-      <div className="grid grid-cols-2 gap-3 overflow-hidden" style={{ maxHeight: '340px' }}>
-        <CameraFeed title="Meltpool Camera (PI 1M)" streamUrl={meltpoolWsUrl} mode="websocket" cameraIndex={0} />
-        <CameraFeed title="Build Plate Camera (Xi 410)" streamUrl={buildPlateWsUrl} mode="websocket" cameraIndex={1} />
+      {/* Two-column layout */}
+      <div className="flex gap-3">
+        {/* Left column — cameras, widgets, heater, jog */}
+        <div className="flex-1 min-w-0 space-y-3">
+          {/* Camera feeds */}
+          <div className="grid grid-cols-2 gap-3">
+            <CameraFeed title="Meltpool Camera (PI 1M)" streamUrl={meltpoolWsUrl} mode="websocket" cameraIndex={0} />
+            <CameraFeed title="Build Plate Camera (Xi 410)" streamUrl={buildPlateWsUrl} mode="websocket" cameraIndex={1} />
+          </div>
+
+          {/* Monitoring widgets row */}
+          <div className="grid grid-cols-3 gap-3">
+            <MeltpoolWidget />
+            <BuildPlateWidget />
+            <ScannerWidget />
+          </div>
+
+          {/* Ambrell heater */}
+          <AmbrellDashboardWidget />
+
+          {/* Jog controls */}
+          <JogPanel />
+        </div>
+
+        {/* Right column — G-code, heated bed, run notes */}
+        <div className="w-80 shrink-0 space-y-3">
+          <GcodeWidget />
+          <HeatedBedWidget />
+          <ScannerWidget />
+          <RunNotes />
+        </div>
       </div>
-
-      {/* Middle row: monitoring widgets */}
-      <div className="grid grid-cols-3 gap-3">
-        <MeltpoolWidget />
-        <BuildPlateWidget />
-        <RunNotes />
-      </div>
-
-      {/* Ambrell heater — full width, prominent */}
-      <AmbrellDashboardWidget />
-
-      {/* Jog controls */}
-      <JogPanel />
     </div>
   )
 }

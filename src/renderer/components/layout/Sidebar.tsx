@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { id: 'jog', label: 'Jog', icon: '\u2725' },
   { id: 'gcode', label: 'G-Code', icon: '\u25B6' },
   { id: 'ambrell', label: 'Heater', icon: '\u2668' },
+  { id: 'bed', label: 'Bed', icon: '\u2B1A' },
   { id: 'scan', label: 'Scan', icon: '\u25CE' },
   { id: 'analysis', label: 'Analysis', icon: '\u25B7' },
   { id: 'variables', label: 'Variables', icon: '\u2630' },

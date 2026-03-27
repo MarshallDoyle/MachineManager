@@ -32,7 +32,7 @@ export function CameraFeed({ title, streamUrl, mode = 'mjpeg', cameraIndex = 0 }
         >
           {'\u2715'}
         </button>
-        <div className="w-full h-full max-w-[95vw] max-h-[95vh]">
+        <div className="w-full h-full">
           {feed}
         </div>
       </div>
@@ -49,7 +49,7 @@ function MjpegFeed({ title, streamUrl }: { title: string; streamUrl: string | nu
   return (
     <div className="bg-zinc-900 border border-zinc-700 rounded-lg overflow-hidden flex flex-col">
       <CameraHeader title={title} status={loaded && !error ? 'live' : error ? 'error' : 'connecting'} />
-      <div className="relative flex-1 bg-black flex items-center justify-center min-h-[140px] max-h-[300px]">
+      <div className="relative flex-1 bg-black flex items-center justify-center min-h-[100px]">
         {streamUrl ? (
           <img
             src={streamUrl}
@@ -218,7 +218,7 @@ function WebSocketFeed({ title, wsUrl, cameraIndex, onFullscreenToggle }: { titl
     <div className="bg-zinc-900 border border-zinc-700 rounded-lg overflow-hidden flex flex-col">
       <CameraHeader title={title} status={status} fps={fps} metadata={metadata} onFullscreen={onFullscreenToggle} />
       <div className="relative flex-1 flex">
-        <div className="relative flex-1 bg-black flex items-center justify-center min-h-[140px] max-h-[300px]">
+        <div className="relative flex-1 bg-black flex items-center justify-center min-h-[100px]">
           {wsUrl ? (
             <canvas ref={canvasRef} className="w-full" style={{ imageRendering: 'auto' }} />
           ) : (

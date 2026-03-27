@@ -7,6 +7,7 @@ import { VariablesPage } from '../../pages/VariablesPage'
 import { SettingsPage } from '../../pages/SettingsPage'
 import { GcodePage } from '../../pages/GcodePage'
 import { AmbrellPage } from '../../pages/AmbrellPage'
+import { HeatedBedPage } from '../../pages/HeatedBedPage'
 import { BuildPlateScanPage } from '../../pages/BuildPlateScanPage'
 import { AnalysisPage } from '../../pages/AnalysisPage'
 
@@ -23,6 +24,8 @@ export function AppShell() {
         return <GcodePage />
       case 'ambrell':
         return <AmbrellPage />
+      case 'bed':
+        return <HeatedBedPage />
       case 'scan':
         return <BuildPlateScanPage />
       case 'analysis':

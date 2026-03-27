@@ -60,11 +60,25 @@ OTC SDK installed at: `C:\Program Files\Optris\otcsdk`
 8. Device temperature monitoring (flag/housing/chip temps)
 9. Adjustable flag interval
 
-### Scanner Integration (TODO)
-- Micro-Epsilon scanCONTROL 3000-25/BL (blue laser) planned for purchase
+### Scanner Integration
+**Hardware:** Micro-Epsilon scanCONTROL 3002-25 (red laser)
+- 1,024 points/profile, 24 µm point distance
+- 25mm measuring range (Z)
+- 5 kHz profile rate (~8M points/sec)
 - GigE Vision + GenICam SDK (C/C++)
-- Three use cases: build plate leveling, melt pool analysis, PID Z-height compensation
-- Build Plate Scan page already scaffolded with Three.js point cloud
+- IP67 rated, 0-45°C operating temp
+- SDK: C/C++ library with GeniCam standard, supports static/dynamic loading
+- Integration: GigE Ethernet, same pattern as thermal cameras
+- Use cases: build plate leveling, part geometry scanning, Z-height compensation
+- Build Plate Scan page scaffolded with Three.js point cloud + demo data
+- Dashboard has ScannerWidget showing last scan summary
+
+### Heated Print Bed
+- Dashboard widget with thermocouple reading, heater power bar, target temp setpoint
+- Full "Bed" tab page with PID tuning (Kp, Ki, Kd)
+- State: heatedBedStore.ts (currentTemp, targetTemp, heaterPower, heatingState)
+- TODO: Wire to PLC thermocouple input (EL3174 analog input is available but unmapped)
+- TODO: Wire heater cartridge control via PLC digital/analog output
 
 ### Analysis/Recording (Implemented)
 - Recording service captures camera frames + axis data to NDJSON

@@ -16,13 +16,11 @@ export function JogButton({ label, axis, direction, disabled, incremental, class
     if (disabled) return
 
     if (incremental) {
-      // Incremental mode: single click fires a pulse (true then false)
       window.machineAPI.ads.startJog(axis, direction)
       setTimeout(() => {
         window.machineAPI.ads.stopJog(axis, direction)
       }, 100)
     } else {
-      // Continuous mode: hold to move
       if (activeRef.current) return
       activeRef.current = true
       window.machineAPI.ads.startJog(axis, direction)
@@ -30,7 +28,7 @@ export function JogButton({ label, axis, direction, disabled, incremental, class
   }, [axis, direction, disabled, incremental])
 
   const handleStop = useCallback(() => {
-    if (incremental) return // Already handled via timeout
+    if (incremental) return
     if (!activeRef.current) return
     activeRef.current = false
     window.machineAPI.ads.stopJog(axis, direction)
@@ -44,14 +42,12 @@ export function JogButton({ label, axis, direction, disabled, incremental, class
       onPointerCancel={handleStop}
       disabled={disabled}
       className={`
-        select-none touch-none
-        px-4 py-3 rounded-md font-bold text-sm
-        bg-zinc-800 border border-zinc-600 text-zinc-200
-        hover:bg-zinc-700 hover:border-zinc-500
-        active:bg-blue-600 active:border-blue-400 active:text-white
-        disabled:opacity-30 disabled:cursor-not-allowed
-        transition-colors duration-75
-        ${className ?? ''}
+        select-none touch-none rounded-md font-bold text-sm transition-colors duration-75
+        ${disabled
+          ? 'bg-zinc-900 border border-zinc-800 text-zinc-700 cursor-not-allowed'
+          : 'bg-zinc-800 border border-zinc-600 text-zinc-200 hover:bg-zinc-700 hover:border-zinc-500 active:bg-blue-600 active:border-blue-400 active:text-white cursor-pointer'
+        }
+        ${className ?? 'px-4 py-3'}
       `}
     >
       {label}
