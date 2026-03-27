@@ -1,13 +1,16 @@
 /// <reference types="vite/client" />
 
+type JogAxis = 'x' | 'y' | 'z' | 'z2' | 'ext'
+type JogDirection = 'forward' | 'backward'
+
 interface MachineAPI {
   ads: {
     connect(config: { targetAmsNetId: string; targetAdsPort: number }): Promise<{ success: boolean; error?: string }>
     disconnect(): Promise<{ success: boolean; error?: string }>
     readSymbol(path: string): Promise<{ success: boolean; value?: unknown; error?: string }>
     writeSymbol(path: string, value: unknown): Promise<{ success: boolean; error?: string }>
-    startJog(axis: string, direction: string): Promise<{ success: boolean; error?: string }>
-    stopJog(axis: string, direction: string): Promise<{ success: boolean; error?: string }>
+    startJog(axis: JogAxis, direction: JogDirection): Promise<{ success: boolean; error?: string }>
+    stopJog(axis: JogAxis, direction: JogDirection): Promise<{ success: boolean; error?: string }>
     stopAll(): Promise<{ success: boolean; error?: string }>
     setJogVelocity(velocity: number): Promise<{ success: boolean; error?: string }>
     setJogMode(mode: number): Promise<{ success: boolean; error?: string }>

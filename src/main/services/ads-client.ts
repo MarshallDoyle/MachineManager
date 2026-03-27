@@ -83,6 +83,32 @@ const PLC = {
 
 export { PLC }
 
+const JOG_SYMBOLS = {
+  x: {
+    forward: PLC.bXJogForward,
+    backward: PLC.bXJogBackward
+  },
+  y: {
+    forward: PLC.bYJogForward,
+    backward: PLC.bYJogBackward
+  },
+  z: {
+    forward: PLC.bZJogForward,
+    backward: PLC.bZJogBackward
+  },
+  z2: {
+    forward: PLC.bZ2JogForward,
+    backward: PLC.bZ2JogBackward
+  },
+  ext: {
+    forward: PLC.bExtJogForward,
+    backward: PLC.bExtJogBackward
+  }
+} as const
+
+type JogAxis = keyof typeof JOG_SYMBOLS
+type JogDirection = keyof typeof JOG_SYMBOLS.x
+
 export type ConnectionDiagnosis = {
   status: 'connected' | 'tc_config_mode' | 'plc_not_running' | 'symbols_not_found' | 'disconnected' | 'error'
   message: string
@@ -313,20 +339,27 @@ class AdsClientService {
 
   // --- Jog commands ---
 
-  async startJog(axis: string, direction: string): Promise<void> {
-    const key = `b${axis.toUpperCase()}Jog${direction === 'forward' ? 'Forward' : 'Backward'}` as keyof typeof PLC
-    const path = PLC[key]
-    if (path) {
-      await this.writeSymbol(path, true)
+  private getJogSymbol(axis: string, direction: string): (typeof PLC)[keyof typeof PLC] {
+    const axisKey = axis as JogAxis
+    const directionKey = direction as JogDirection
+    const axisSymbols = JOG_SYMBOLS[axisKey]
+
+    if (!axisSymbols) {
+      throw new Error(`Unsupported jog axis: ${axis}`)
     }
+    if (directionKey !== 'forward' && directionKey !== 'backward') {
+      throw new Error(`Unsupported jog direction: ${direction}`)
+    }
+
+    return axisSymbols[directionKey]
+  }
+
+  async startJog(axis: string, direction: string): Promise<void> {
+    await this.writeSymbol(this.getJogSymbol(axis, direction), true)
   }
 
   async stopJog(axis: string, direction: string): Promise<void> {
-    const key = `b${axis.toUpperCase()}Jog${direction === 'forward' ? 'Forward' : 'Backward'}` as keyof typeof PLC
-    const path = PLC[key]
-    if (path) {
-      await this.writeSymbol(path, false)
-    }
+    await this.writeSymbol(this.getJogSymbol(axis, direction), false)
   }
 
   async stopAll(): Promise<void> {
