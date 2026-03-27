@@ -12,6 +12,7 @@ import { RunNotes } from '../components/dashboard/RunNotes'
 import { HeatedBedWidget } from '../components/dashboard/HeatedBedWidget'
 import { ScannerWidget } from '../components/dashboard/ScannerWidget'
 import { GcodeWidget } from '../components/dashboard/GcodeWidget'
+import { DriveMonitorPanel } from '../components/dashboard/DriveMonitorPanel'
 
 export function DashboardPage() {
   const { connectionStatus, connectionError, connect, disconnect } = useAdsConnection()
@@ -349,6 +350,9 @@ export function DashboardPage() {
 
           {/* Jog controls */}
           <JogPanel />
+
+          {/* Drive monitor */}
+          <DriveMonitorPanel />
         </div>
 
         {/* Right column — G-code, heated bed, run notes */}
