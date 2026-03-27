@@ -3,24 +3,25 @@
   <POU Name="FB_JogAxis" Id="{00000000-0000-0000-0000-000000000002}" SpecialFunc="None">
     <Declaration><![CDATA[
 // FB_JogAxis
-// Function block for jogging a single axis.
+// Function block for jogging a single axis (or a gantry master+slave pair).
 // Supports two modes:
 //   nJogMode = 0: Continuous jog via MC_Jog (hold button to move)
 //   nJogMode = 1: Incremental step via MC_MoveRelative (click to move fJogDistance)
 //
+// For gantry axes (Y), set bHasSlave := TRUE and pass SlaveAxis.
+// MC_GearIn will be called automatically before any jog motion to ensure
+// the slave follows the master 1:1.
+//
 // Usage in MAIN:
-//   fbJogX(bJogForward := GVL_MachineManager.bXJogForward,
-//          bJogBackward := GVL_MachineManager.bXJogBackward,
+//   fbJogY(bJogForward := GVL_MachineManager.bYJogForward,
+//          bJogBackward := GVL_MachineManager.bYJogBackward,
 //          fVelocity := GVL_MachineManager.fJogVelocity,
 //          nJogMode := GVL_MachineManager.nJogMode,
 //          fJogDistance := GVL_MachineManager.fJogDistance,
 //          bStop := GVL_MachineManager.bStopAll,
-//          Axis := AxisX);
-//   GVL_MachineManager.fXActualPosition := fbJogX.fActualPosition;
-//   GVL_MachineManager.fXActualVelocity := fbJogX.fActualVelocity;
-//   GVL_MachineManager.nXAxisState := fbJogX.nAxisState;
-//   GVL_MachineManager.bXAxisError := fbJogX.bError;
-//   GVL_MachineManager.nXAxisErrorId := fbJogX.nErrorId;
+//          Axis := axisY_Master,
+//          bHasSlave := TRUE,
+//          SlaveAxis := axisY_Slave);
 
 FUNCTION_BLOCK FB_JogAxis
 VAR_INPUT
@@ -31,9 +32,11 @@ VAR_INPUT
     fJogDistance  : LREAL;     // mm, used when nJogMode = 1
     bStop        : BOOL;
     bResetError  : BOOL;
+    bHasSlave    : BOOL;      // TRUE for gantry axes (Y master/slave)
 END_VAR
 VAR_IN_OUT
     Axis         : AXIS_REF;
+    SlaveAxis    : AXIS_REF;  // Only used when bHasSlave = TRUE
 END_VAR
 VAR_OUTPUT
     fActualPosition : LREAL;
@@ -54,17 +57,57 @@ VAR
     rtBwd       : R_TRIG;
     bStepFwd    : BOOL;
     bStepBwd    : BOOL;
+    // Gantry coupling
+    fbGearIn    : MC_GearIn;
+    fbSlavePower: MC_Power;
+    bGearCoupled: BOOL;
 END_VAR
     ]]></Declaration>
     <Implementation>
       <ST><![CDATA[
-// Enable axis
+// Enable master axis
 fbMcPower(
     Axis := Axis,
     Enable := bPowerOn,
     Enable_Positive := TRUE,
     Enable_Negative := TRUE
 );
+
+// Enable and couple slave axis if this is a gantry pair
+IF bHasSlave THEN
+    fbSlavePower(
+        Axis := SlaveAxis,
+        Enable := bPowerOn,
+        Enable_Positive := TRUE,
+        Enable_Negative := TRUE
+    );
+
+    // Engage MC_GearIn: slave follows master 1:1
+    // This is called every cycle — MC_GearIn is idempotent once coupled
+    IF NOT bGearCoupled AND fbMcPower.Status AND fbSlavePower.Status THEN
+        fbGearIn(
+            Master := Axis,
+            Slave := SlaveAxis,
+            RatioNumerator := 1,
+            RatioDenominator := 1,
+            Acceleration := 100.0,
+            Deceleration := 100.0,
+            Execute := TRUE
+        );
+        IF fbGearIn.InGear THEN
+            bGearCoupled := TRUE;
+        END_IF
+    ELSIF bGearCoupled THEN
+        // Keep calling with Execute FALSE to maintain coupling state
+        fbGearIn(
+            Master := Axis,
+            Slave := SlaveAxis,
+            RatioNumerator := 1,
+            RatioDenominator := 1,
+            Execute := FALSE
+        );
+    END_IF
+END_IF
 
 // Stop all axes if requested
 fbMcStop(
@@ -139,8 +182,8 @@ Axis.ReadStatus();
 fActualPosition := Axis.NcToPlc.ActPos;
 fActualVelocity := Axis.NcToPlc.ActVelo;
 nAxisState := UDINT_TO_UINT(Axis.NcToPlc.StateDWord AND 16#FF);
-bError := fbMcJog.Error OR fbMcPower.Error OR fbMcMoveRel.Error;
-nErrorId := SEL(fbMcMoveRel.Error, fbMcJog.ErrorID, fbMcMoveRel.ErrorID);
+bError := fbMcJog.Error OR fbMcPower.Error OR fbMcMoveRel.Error OR fbGearIn.Error;
+nErrorId := SEL(fbMcMoveRel.Error, SEL(fbGearIn.Error, fbMcJog.ErrorID, fbGearIn.ErrorID), fbMcMoveRel.ErrorID);
       ]]></ST>
     </Implementation>
   </POU>
