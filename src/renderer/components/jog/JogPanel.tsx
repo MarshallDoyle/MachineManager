@@ -191,13 +191,13 @@ export function JogPanel() {
           </div>
         </div>
 
-        {/* Extruder — Feed / Extract */}
+        {/* Extruder — Feed / Retract */}
         <div className="flex flex-col items-center">
           <span className="text-zinc-500 text-[10px] uppercase tracking-wide mb-2">Extruder</span>
           <div className="flex flex-col items-center gap-2">
             <JogButton label="Feed" axis="ext" direction="forward" disabled={disabled} incremental={incremental} className="w-20 h-10 text-[10px]" />
             <div className="bg-zinc-800 rounded w-20 h-10 flex items-center justify-center text-zinc-600 text-xs font-bold">EXT</div>
-            <JogButton label="Extract" axis="ext" direction="backward" disabled={disabled} incremental={incremental} className="w-20 h-10 text-[10px]" />
+            <JogButton label="Retract" axis="ext" direction="backward" disabled={disabled} incremental={incremental} className="w-20 h-10 text-[10px]" />
           </div>
           <div className="mt-2">
             <AxisReadout axis="ext" label="E" />
